@@ -15,14 +15,14 @@ import { cssProps, msToNum, numToMs } from '~/utils/style';
 import { baseMeta } from '~/utils/meta';
 import { Form, useActionData, useNavigation } from '@remix-run/react';
 import { json } from '@remix-run/cloudflare';
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import nodemailer from 'nodemailer';
 import styles from './contact.module.css';
 
 export const meta = () => {
   return baseMeta({
     title: 'Contact',
     description:
-      'Send me a message if you’re interested in discussing a project or if you just want to say hi',
+      'Send me a message if you are interested in discussing a project or if you just want to say hi',
   });
 };
 
@@ -31,14 +31,6 @@ const MAX_MESSAGE_LENGTH = 4096;
 const EMAIL_PATTERN = /(.+)@(.+){2,}\.(.+){2,}/;
 
 export async function action({ context, request }) {
-  const ses = new SESClient({
-    region: 'us-east-1',
-    credentials: {
-      accessKeyId: context.cloudflare.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: context.cloudflare.env.AWS_SECRET_ACCESS_KEY,
-    },
-  });
-
   const formData = await request.formData();
   const isBot = String(formData.get('name'));
   const email = String(formData.get('email'));
@@ -69,30 +61,33 @@ export async function action({ context, request }) {
     return json({ errors });
   }
 
-  // Send email via Amazon SES
-  await ses.send(
-    new SendEmailCommand({
-      Destination: {
-        ToAddresses: [context.cloudflare.env.EMAIL],
-      },
-      Message: {
-        Body: {
-          Text: {
-            Data: `From: ${email}\n\n${message}`,
-          },
-        },
-        Subject: {
-          Data: `Portfolio message from ${email}`,
-        },
-      },
-      Source: `Portfolio <${context.cloudflare.env.FROM_EMAIL}>`,
-      ReplyToAddresses: [email],
-    })
-  );
+  // Create a Nodemailer transporter using Gmail
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: context.cloudflare.env.GMAIL_USER,
+      pass: context.cloudflare.env.GMAIL_PASSWORD,
+    },
+  });
 
-  return json({ success: true });
+  // Send email via Gmail
+  try {
+    await transporter.sendMail({
+      from: `Portfolio <${context.cloudflare.env.GMAIL_USER}>`,
+      to: context.cloudflare.env.EMAIL,
+      subject: `Portfolio message from ${email}`,
+      text: `From: ${email}\n\n${message}`,
+      replyTo: email,
+    });
+
+    return json({ success: true });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return json({ errors: { message: 'Failed to send message. Please try again later.' } }, { status: 500 });
+  }
 }
 
+// The rest of the component remains the same...
 export const Contact = () => {
   const errorRef = useRef();
   const email = useFormInput('');
@@ -215,7 +210,7 @@ export const Contact = () => {
               data-status={status}
               style={getDelay(tokens.base.durationXS)}
             >
-              I’ll get back to you within a couple days, sit tight
+              I'll get back to you within a couple days, sit tight
             </Text>
             <Button
               secondary

@@ -41,8 +41,8 @@ export const links = () => {
 
 export const meta = () => {
   return baseMeta({
-    title: 'Designer + Developer',
-    description: `Design portfolio of ${config.name} — a product designer working on web & mobile apps with a focus on motion, experience design, and accessibility.`,
+    title: 'IT Manager + Developer',
+    description: `Portfolio of ${config.name} — a product full-stack develop working on web & mobile apps with a focus on motion, experience design, and accessibility.`,
   });
 };
 
@@ -103,10 +103,10 @@ export const Home = () => {
         sectionRef={projectOne}
         visible={visibleSections.includes(projectOne.current)}
         index={1}
-        title="Designing the future of education"
-        description="Designing a platform to help educators build better online courseware"
+        title="AI-powered Symptoms Checker"
+        description="An intelligent health assistant that uses artificial intelligence to analyze user-reported symptoms and suggest possible causes or conditions. It provides preliminary advice, helps users decide if they need medical attention, and may integrate with health APIs or databases to offer accurate, up-to-date information."
         buttonText="View project"
-        buttonLink="/projects/smart-sparrow"
+        buttonLink="https://github.com/thatomoloantoa/AI-Powered-Symptoms-Checker"
         model={{
           type: 'laptop',
           alt: 'Smart Sparrow lesson builder',
@@ -124,10 +124,10 @@ export const Home = () => {
         sectionRef={projectTwo}
         visible={visibleSections.includes(projectTwo.current)}
         index={2}
-        title="Video game progress tracking"
-        description="Design and development for a video game tracking app built in React Native"
+        title=" Personal Portfolio"
+        description="A digital showcase of professional work, skills, and achievements — often built as a website — to represent one's brand. It includes sections like projects, experience, contact info, and sometimes a blog, used by developers, designers, and freelancers to demonstrate capabilities and attract clients or employers."
         buttonText="View website"
-        buttonLink="https://gamestack.hamishw.com"
+        buttonLink="https://github.com/thatomoloantoa/Portfolio-Personal-Website"
         model={{
           type: 'phone',
           alt: 'App login screen',
@@ -148,10 +148,10 @@ export const Home = () => {
         sectionRef={projectThree}
         visible={visibleSections.includes(projectThree.current)}
         index={3}
-        title="Biomedical image collaboration"
-        description="Increasing the amount of collaboration in Slice, an app for biomedical imaging"
+        title="RAG Chatbots and Voice-to-Text Interfaces"
+        description="A fusion of Retrieval-Augmented Generation (RAG) and speech processing technologies, enabling chatbots to fetch relevant external information and respond in real time using natural language. Paired with voice-to-text input, these systems provide more interactive and accessible AI experiences in customer service, education, or healthcare."
         buttonText="View project"
-        buttonLink="/projects/slice"
+        buttonLink="https://github.com/thatomoloantoa/landbot-chatbot"
         model={{
           type: 'laptop',
           alt: 'Annotating a biomedical image in the Slice app',

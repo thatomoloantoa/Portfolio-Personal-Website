@@ -31,47 +31,78 @@ const EMAIL_PATTERN = /(.+)@(.+){2,}\.(.+){2,}/;
 
 // ✅ Replace nodemailer with fetch to Resend API
 export async function action({ request }) {
-  const formData = await request.formData();
-  const isBot = String(formData.get('name'));
-  const email = String(formData.get('email'));
-  const message = String(formData.get('message'));
-  const errors = {};
+  try {
+    const formData = await request.formData();
+    const isBot = String(formData.get('name'));
+    const email = String(formData.get('email'));
+    const message = String(formData.get('message'));
 
-  if (isBot) return json({ success: true });
+    console.log("📨 Incoming form data:", { isBot, email, message });
 
-  // validate
-  if (!email || !EMAIL_PATTERN.test(email)) {
-    errors.email = 'Please enter a valid email address.';
-  }
-  if (!message) {
-    errors.message = 'Please enter a message.';
-  }
-  if (Object.keys(errors).length > 0) {
-    return json({ errors });
-  }
+    const errors = {};
 
-  // ✅ Send email via Resend
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "Your Name <onboarding@resend.dev>", //Verified sender in Resend
-      to: [process.env.CONTACT_EMAIL], //Your email
+    if (isBot) {
+      console.log("🤖 Bot detected, ignoring submission.");
+      return json({ success: true });
+    }
+
+    // Validate input
+    if (!email || !EMAIL_PATTERN.test(email)) {
+      errors.email = 'Please enter a valid email address.';
+    }
+
+    if (!message) {
+      errors.message = 'Please enter a message.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      console.log("⚠️ Validation errors:", errors);
+      return json({ errors });
+    }
+
+    // Prepare and send email using Resend API
+    const payload = {
+      from: "Your Name <onboarding@resend.dev>",
+      to: [process.env.CONTACT_EMAIL],
       subject: `New message from ${email}`,
       text: `From: ${email}\n\n${message}`,
       reply_to: email,
-    }),
-  });
+    };
 
-  if (!response.ok) {
-    return json({ errors: { message: 'Failed to send message. Try again later.' } }, { status: 500 });
+    console.log("📦 Sending payload to Resend:", payload);
+
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const responseBody = await response.text();
+    console.log("📬 Resend response:", response.status, responseBody);
+
+    if (!response.ok) {
+      console.error("❌ Failed to send message via Resend.");
+      return json(
+        { errors: { message: 'Failed to send message. Try again later.' } },
+        { status: 500 }
+      );
+    }
+
+    console.log("✅ Message sent successfully.");
+    return json({ success: true });
+
+  } catch (err) {
+    console.error("🔥 Unexpected error in form submission:", err);
+    return json(
+      { errors: { message: 'An unexpected error occurred.' } },
+      { status: 500 }
+    );
   }
-
-  return json({ success: true });
 }
+
 
 
 // The rest of the component remains the same...

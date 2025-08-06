@@ -1,6 +1,6 @@
 import profileImgLarge from '~/assets/Thato_3.jpg';
 import profileImgPlaceholder from '~/assets/Thato_2.jpg';
-import profileImg from '~/assets/profile.jpg';
+import profileImg from '~/assets/Thato_3.jpg';
 import { Button } from '~/components/button';
 import { DecoderText } from '~/components/decoder-text';
 import { Divider } from '~/components/divider';
@@ -29,7 +29,7 @@ const ProfileText = ({ visible, titleId }) => (
       support .
     </Text>
     <Text className={styles.description} data-visible={visible} size="l" as="p">
-      In my spare time I like to play chess, watch movies and{' '}
+      In my spare time I like to play chess and{' '}
         also watch movies . I’m always down for hearing
       about new projects, so feel free to drop me a line.
     </Text>

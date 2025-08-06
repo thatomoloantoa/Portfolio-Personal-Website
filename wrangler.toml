@@ -1,3 +1,11 @@
-kv_namespaces = [
-  { id = "MY_KV", binding="MY_KV" }
-]
+name = "portfolio-personal-website"
+compatibility_date = "2025-08-06"
+
+[site]
+bucket = "./public"
+
+[build]
+command = "npm run build"
+
+[env.production]
+workers_dev = false

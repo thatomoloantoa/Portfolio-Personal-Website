@@ -30,62 +30,50 @@ const MAX_EMAIL_LENGTH = 512;
 const MAX_MESSAGE_LENGTH = 4096;
 const EMAIL_PATTERN = /(.+)@(.+){2,}\.(.+){2,}/;
 
-export async function action({ context, request }) {
+// ✅ Replace nodemailer with fetch to Resend API
+export async function action({ request }) {
   const formData = await request.formData();
   const isBot = String(formData.get('name'));
   const email = String(formData.get('email'));
   const message = String(formData.get('message'));
   const errors = {};
 
-  // Return without sending if a bot trips the honeypot
   if (isBot) return json({ success: true });
 
-  // Handle input validation on the server
+  // validate
   if (!email || !EMAIL_PATTERN.test(email)) {
     errors.email = 'Please enter a valid email address.';
   }
-
   if (!message) {
     errors.message = 'Please enter a message.';
   }
-
-  if (email.length > MAX_EMAIL_LENGTH) {
-    errors.email = `Email address must be shorter than ${MAX_EMAIL_LENGTH} characters.`;
-  }
-
-  if (message.length > MAX_MESSAGE_LENGTH) {
-    errors.message = `Message must be shorter than ${MAX_MESSAGE_LENGTH} characters.`;
-  }
-
   if (Object.keys(errors).length > 0) {
     return json({ errors });
   }
 
-  // Create a Nodemailer transporter using Gmail
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: context.cloudflare.env.GMAIL_USER,
-      pass: context.cloudflare.env.GMAIL_PASSWORD,
+  // ✅ Send email via Resend
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      from: "Your Name <onboarding@resend.dev>", //Verified sender in Resend
+      to: [process.env.CONTACT_EMAIL], //Your email
+      subject: `New message from ${email}`,
+      text: `From: ${email}\n\n${message}`,
+      reply_to: email,
+    }),
   });
 
-  // Send email via Gmail
-  try {
-    await transporter.sendMail({
-      from: `Portfolio <${context.cloudflare.env.GMAIL_USER}>`,
-      to: context.cloudflare.env.EMAIL,
-      subject: `Portfolio message from ${email}`,
-      text: `From: ${email}\n\n${message}`,
-      replyTo: email,
-    });
-
-    return json({ success: true });
-  } catch (error) {
-    console.error('Error sending email:', error);
-    return json({ errors: { message: 'Failed to send message. Please try again later.' } }, { status: 500 });
+  if (!response.ok) {
+    return json({ errors: { message: 'Failed to send message. Try again later.' } }, { status: 500 });
   }
+
+  return json({ success: true });
 }
+
 
 // The rest of the component remains the same...
 export const Contact = () => {
